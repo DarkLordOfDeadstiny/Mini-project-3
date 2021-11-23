@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option go_package = "Mini-project-3/gRPC";
+
+package gRPC;
+
+service AuctionService
+{
+   rpc MultiCast (Amount) returns (Amount){}
+   rpc Bid (Amount) returns (Ack) {}
+   rpc Result (Void) returns (Outcome) {}
+}
+
+message Amount {
+    string bidders_name = 1;
+    int64 amount = 2;
+}
+
+message AmountId {
+    int64 id = 1; 
+}
+
+message Ack {
+    string status = 1;
+}
+
+message Void {}
+
+message Outcome {
+    string status = 1;
+    int64 highest_bid = 2;
+}
