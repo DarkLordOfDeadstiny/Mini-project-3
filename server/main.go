@@ -55,6 +55,7 @@ func main() {
 	//code here is unreachable
 	go run()
 	for {
+		time.Sleep(time.Second*5)
 	}
 }
 
