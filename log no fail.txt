@@ -1,0 +1,29 @@
+2021/11/30 14:48:19 Server 3: Attempts to create listener on port 5400
+2021/11/30 14:48:19 Server 3: Failed to listen on port 5400: listen tcp :5400: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+2021/11/30 14:48:19 Server 3: Attempts to create listener on port 5401
+2021/11/30 14:48:19 Server 3: Failed to listen on port 5400: listen tcp :5401: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+2021/11/30 14:48:19 Server 3: Attempts to create listener on port 5402
+2021/11/30 14:48:21 client c1: Attempts to dial on port 5400
+2021/11/30 14:48:21 client c1: Attempts to dial on port 5401
+2021/11/30 14:48:21 client c1: Attempts to dial on port 5402
+2021/11/30 14:48:21 client c1: Attempts to dial on port 5403
+2021/11/30 14:48:22 Fail to Dial : context deadline exceeded
+2021/11/30 14:48:22 client c1: Attempts to dial on port 5404
+2021/11/30 14:48:22 Fail to Dial : context deadline exceeded
+2021/11/30 14:48:24 client c2: Attempts to dial on port 5400
+2021/11/30 14:48:24 client c2: Attempts to dial on port 5401
+2021/11/30 14:48:24 client c2: Attempts to dial on port 5402
+2021/11/30 14:48:24 client c2: Attempts to dial on port 5403
+2021/11/30 14:48:25 Fail to Dial : context deadline exceeded
+2021/11/30 14:48:25 client c2: Attempts to dial on port 5404
+2021/11/30 14:48:25 Fail to Dial : context deadline exceeded
+2021/11/30 14:48:45 Server 1: c1 Bid for 1, with success
+2021/11/30 14:48:45 Server 2: c1 Bid for 1, with success
+2021/11/30 14:48:45 Server 3: c1 Bid for 1, with success
+2021/11/30 14:48:49 Server 1: c2 Bid for 2, with success
+2021/11/30 14:48:49 Server 2: c2 Bid for 2, with success
+2021/11/30 14:48:49 Server 3: c2 Bid for 2, with success
+2021/11/30 14:48:53 Client askes for highest bid of 2
+2021/11/30 14:49:13 The auction is closed and the winner of the auction with a bid of 2 by c2.
+2021/11/30 14:49:16 The auction is closed and the winner of the auction with a bid of 2 by c2.
+2021/11/30 14:49:19 The auction is closed and the winner of the auction with a bid of 2 by c2.

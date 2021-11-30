@@ -1,7 +1,7 @@
 2021/11/30 14:51:01 Server 3: Attempts to create listener on port 5400
-2021/11/30 14:51:01 Server 3: Failed to listen on port 5400: listen tcp 127.0.0.1:5400: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+2021/11/30 14:51:01 Server 3: Failed to listen on port 5400: listen tcp :5400: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
 2021/11/30 14:51:01 Server 3: Attempts to create listener on port 5401
-2021/11/30 14:51:01 Server 3: Failed to listen on port 5400: listen tcp 127.0.0.1:5401: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+2021/11/30 14:51:01 Server 3: Failed to listen on port 5400: listen tcp :5401: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
 2021/11/30 14:51:01 Server 3: Attempts to create listener on port 5402
 2021/11/30 14:51:04 client c1: Attempts to dial on port 5400
 2021/11/30 14:51:04 client c1: Attempts to dial on port 5401

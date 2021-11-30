@@ -6,7 +6,6 @@ package gRPC;
 
 service AuctionService
 {
-   rpc MultiCast (Amount) returns (Amount){}
    rpc Bid (Amount) returns (Ack) {}
    rpc Result (Void) returns (Outcome) {}
 }

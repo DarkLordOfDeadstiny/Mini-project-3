@@ -9,9 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	//"time"
-
-	// "time"
+	"time"
 
 	gRPC "github.com/DarkLordOfDeadstiny/Mini-project-3/proto"
 
@@ -24,8 +22,8 @@ var tcpServer = flag.String("server", "5400", "Tcp server")
 var _ports [5]string = [5]string{*tcpServer, "5401", "5402", "5403", "5404"}
 
 var ctx context.Context
-var server gRPC.AuctionServiceClient
-var conn *grpc.ClientConn
+var servers []gRPC.AuctionServiceClient
+var ServerConn map[gRPC.AuctionServiceClient]*grpc.ClientConn
 
 func main() {
 	flag.Parse()
@@ -41,68 +39,36 @@ func main() {
 	log.SetOutput(f)
 
 	fmt.Println("--- join Server ---")
-	joinServer(_ports[:])
+	ServerConn = make(map[gRPC.AuctionServiceClient]*grpc.ClientConn)
+	joinServer()
 
 	//start the biding
-	bid()
-	defer conn.Close()
+	parseInput()
 }
 
-func joinServer(ports []string) {
+func joinServer() {
 	//connect to server
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithBlock(), grpc.WithInsecure())
-
-	log.Printf("client %s: Attempts to dial on port %s\n", *biddersName, ports[0])
-	conn, err := grpc.Dial(fmt.Sprintf(":%s", ports[0]), opts...)
-	if err != nil {
-		log.Printf("Fail to Dial : %v", err)
-		if len(ports) > 1 {
-			joinServer(ports[1:])
-		} else {
-			log.Fatalf("Client %s: Failed to find open port", *biddersName)
+	timeContext, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	for _, port := range _ports {
+		log.Printf("client %s: Attempts to dial on port %s\n", *biddersName, port)
+		conn, err := grpc.DialContext(timeContext, fmt.Sprintf(":%s", port), opts...)
+		if err != nil {
+			log.Printf("Fail to Dial : %v", err)
+			continue
 		}
+		var s = gRPC.NewAuctionServiceClient(conn)
+		servers = append(servers, s)
+		ServerConn[s] = conn
+		fmt.Println(conn.GetState().String())
 	}
-
 	ctx = context.Background()
-	server = gRPC.NewAuctionServiceClient(conn)
 }
 
-// func joinServer(ports []string) {
-// 	//connect to server
-// 	var opts []grpc.DialOption
-// 	opts = append(opts, grpc.WithBlock(), grpc.WithInsecure())
-// 	timeContext, cancel := context.WithTimeout(context.Background(), time.Second*5)
-// 	defer cancel()
-// 	log.Printf("client %s: Attempts to dial on port %s\n", *biddersName, ports[0])
-// 	conn, err := grpc.DialContext(timeContext, fmt.Sprintf(":%s", ports[0]), opts...)
-// 	if err != nil {
-// 		log.Printf("Fail to Dial : %v", err)
-// 		if len(ports) > 1 {
-// 			joinServer(ports[1:])
-// 		} else {
-// 			log.Fatalf("Client %s: Failed to find open port", *biddersName)
-// 		}
-// 	}
-
-// 	// ctx = context.Background()
-// 	server = gRPC.NewAuctionServiceClient(conn)
-// }
-
-func bid() {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Type your bidding amount here")
-	fmt.Println("--------------------")
-
+func bid(in string) {
 	for {
-		fmt.Printf("The current highest bid is %d\n", getResult())
-		fmt.Print("-> ")
-		in, err := reader.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
-		}
-		in = strings.TrimSpace(in)
 		bidval, err := strconv.ParseInt(in, 10, 64)
 		if err != nil {
 			log.Fatal(err)
@@ -112,27 +78,62 @@ func bid() {
 			BiddersName: *biddersName,
 			Amount:      bidval,
 		}
-		ack, err := server.Bid(ctx, amount)
-		if err != nil {
-			log.Printf("Client %s: no response from server, tries to reconnect", *biddersName)
-			// conn.Close()
-			joinServer(_ports[:])
-
-			log.Fatal(err)
+		for _, s := range servers{ 
+			if conReady(s) {
+				fmt.Println(s)
+				ack, err := s.Bid(ctx, amount)
+				if err != nil {
+					log.Printf("Client %s: no response from the server, attempting to reconnect", *biddersName)
+					log.Println(err)
+				}
+				switch ack.Status {
+				case "fail":
+					fmt.Println("The bid was unsuccessful, must be above the current highest bid")
+				case "success":	
+					fmt.Println("The bid was successful")
+				default:
+					fmt.Println(ack.Status)
+				}
+			}
 		}
-		if ack.Status == "fail" {
-			fmt.Println("The bid was unsuccessful, must be above the current highest bid")
-		} else {
-			fmt.Println("The bid was successsful")
-		}
-
+		parseInput()
 	}
 }
 
 func getResult() int64 {
-	outcome, error := server.Result(ctx, &gRPC.Void{})
-	if error != nil {
-		return getResult()
+	//fmt.Println(context.Background())
+	void := &gRPC.Void{}
+	for _, s := range servers{
+		if conReady(s){
+			outcome, _ := s.Result(ctx, void)
+			return outcome.HighestBid
+		}
+
+
 	}
-	return outcome.HighestBid
+	return -1
+}
+
+func parseInput() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Type your bidding amount here or type \"status\" to get the current highest bid")
+	fmt.Println("--------------------")
+
+	for {
+		fmt.Print("-> ")
+		in, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+		in = strings.TrimSpace(in) 
+		if in == "status" {
+			fmt.Printf("The current highest bid is %d\n", getResult())
+		} else {
+			bid(in)
+		}
+	}
+}
+
+func conReady(s gRPC.AuctionServiceClient) bool {
+	return ServerConn[s].GetState().String() == "READY"
 }

@@ -18,7 +18,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuctionServiceClient interface {
-	MultiCast(ctx context.Context, in *Amount, opts ...grpc.CallOption) (*Amount, error)
 	Bid(ctx context.Context, in *Amount, opts ...grpc.CallOption) (*Ack, error)
 	Result(ctx context.Context, in *Void, opts ...grpc.CallOption) (*Outcome, error)
 }
@@ -29,15 +28,6 @@ type auctionServiceClient struct {
 
 func NewAuctionServiceClient(cc grpc.ClientConnInterface) AuctionServiceClient {
 	return &auctionServiceClient{cc}
-}
-
-func (c *auctionServiceClient) MultiCast(ctx context.Context, in *Amount, opts ...grpc.CallOption) (*Amount, error) {
-	out := new(Amount)
-	err := c.cc.Invoke(ctx, "/gRPC.AuctionService/MultiCast", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *auctionServiceClient) Bid(ctx context.Context, in *Amount, opts ...grpc.CallOption) (*Ack, error) {
@@ -62,7 +52,6 @@ func (c *auctionServiceClient) Result(ctx context.Context, in *Void, opts ...grp
 // All implementations must embed UnimplementedAuctionServiceServer
 // for forward compatibility
 type AuctionServiceServer interface {
-	MultiCast(context.Context, *Amount) (*Amount, error)
 	Bid(context.Context, *Amount) (*Ack, error)
 	Result(context.Context, *Void) (*Outcome, error)
 	mustEmbedUnimplementedAuctionServiceServer()
@@ -72,9 +61,6 @@ type AuctionServiceServer interface {
 type UnimplementedAuctionServiceServer struct {
 }
 
-func (UnimplementedAuctionServiceServer) MultiCast(context.Context, *Amount) (*Amount, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method MultiCast not implemented")
-}
 func (UnimplementedAuctionServiceServer) Bid(context.Context, *Amount) (*Ack, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Bid not implemented")
 }
@@ -92,24 +78,6 @@ type UnsafeAuctionServiceServer interface {
 
 func RegisterAuctionServiceServer(s grpc.ServiceRegistrar, srv AuctionServiceServer) {
 	s.RegisterService(&AuctionService_ServiceDesc, srv)
-}
-
-func _AuctionService_MultiCast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Amount)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuctionServiceServer).MultiCast(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gRPC.AuctionService/MultiCast",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuctionServiceServer).MultiCast(ctx, req.(*Amount))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _AuctionService_Bid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -155,10 +123,6 @@ var AuctionService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "gRPC.AuctionService",
 	HandlerType: (*AuctionServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "MultiCast",
-			Handler:    _AuctionService_MultiCast_Handler,
-		},
 		{
 			MethodName: "Bid",
 			Handler:    _AuctionService_Bid_Handler,
