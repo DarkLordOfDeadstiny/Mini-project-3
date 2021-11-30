@@ -41,9 +41,16 @@ func main() {
 	fmt.Println("--- join Server ---")
 	ServerConn = make(map[gRPC.AuctionServiceClient]*grpc.ClientConn)
 	joinServer()
+	defer closeAll()
 
 	//start the biding
 	parseInput()
+}
+
+func closeAll()  {
+	for _, c := range ServerConn {
+		c.Close()
+	}
 }
 
 func joinServer() {

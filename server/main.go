@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	//"errors"
 	"fmt"
 	"log"
 	"net"
@@ -125,9 +124,4 @@ func (s *Server) Bid(ctx context.Context, amount *gRPC.Amount) (*gRPC.Ack, error
 func (s *Server) Result(ctx context.Context, void *gRPC.Void) (*gRPC.Outcome, error){
 	log.Printf("Client askes for highest bid of %d", s.highestBid)
 	return &gRPC.Outcome{Status: "Highest current bid:", HighestBid: s.highestBid}, nil
-}
-
-func (s *Server) MultiCast(ctx context.Context, amount *gRPC.Amount) (*gRPC.Amount, error){
-	s.highestBid = amount.Amount
-	return amount, nil
 }
