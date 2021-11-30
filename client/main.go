@@ -9,6 +9,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	//"time"
+
+	// "time"
 
 	gRPC "github.com/DarkLordOfDeadstiny/Mini-project-3/proto"
 
@@ -16,9 +19,9 @@ import (
 )
 
 var biddersName = flag.String("name", "default", "Senders name")
-var tcpServer = flag.String("server", "localhost:5400", "Tcp server")
+var tcpServer = flag.String("server", "5400", "Tcp server")
 
-var ports [10]string = [10]string{"5400", "5401", "5402", "5403", "5404"}
+var _ports [5]string = [5]string{*tcpServer, "5401", "5402", "5403", "5404"}
 
 var ctx context.Context
 var server gRPC.AuctionServiceClient
@@ -38,31 +41,56 @@ func main() {
 	log.SetOutput(f)
 
 	fmt.Println("--- join Server ---")
-	joinServer()
-	
+	joinServer(_ports[:])
+
 	//start the biding
 	bid()
 	defer conn.Close()
 }
 
-func joinServer() {
+func joinServer(ports []string) {
 	//connect to server
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithBlock(), grpc.WithInsecure())
 
-	conn, err := grpc.Dial(*tcpServer, opts...)
+	log.Printf("client %s: Attempts to dial on port %s\n", *biddersName, ports[0])
+	conn, err := grpc.Dial(fmt.Sprintf(":%s", ports[0]), opts...)
 	if err != nil {
-		log.Fatalf("Fail to Dial : %v", err)
+		log.Printf("Fail to Dial : %v", err)
+		if len(ports) > 1 {
+			joinServer(ports[1:])
+		} else {
+			log.Fatalf("Client %s: Failed to find open port", *biddersName)
+		}
 	}
-	
 
 	ctx = context.Background()
 	server = gRPC.NewAuctionServiceClient(conn)
 }
 
+// func joinServer(ports []string) {
+// 	//connect to server
+// 	var opts []grpc.DialOption
+// 	opts = append(opts, grpc.WithBlock(), grpc.WithInsecure())
+// 	timeContext, cancel := context.WithTimeout(context.Background(), time.Second*5)
+// 	defer cancel()
+// 	log.Printf("client %s: Attempts to dial on port %s\n", *biddersName, ports[0])
+// 	conn, err := grpc.DialContext(timeContext, fmt.Sprintf(":%s", ports[0]), opts...)
+// 	if err != nil {
+// 		log.Printf("Fail to Dial : %v", err)
+// 		if len(ports) > 1 {
+// 			joinServer(ports[1:])
+// 		} else {
+// 			log.Fatalf("Client %s: Failed to find open port", *biddersName)
+// 		}
+// 	}
+
+// 	// ctx = context.Background()
+// 	server = gRPC.NewAuctionServiceClient(conn)
+// }
+
 func bid() {
 	reader := bufio.NewReader(os.Stdin)
-
 
 	fmt.Println("Type your bidding amount here")
 	fmt.Println("--------------------")
@@ -79,13 +107,17 @@ func bid() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		
+
 		amount := &gRPC.Amount{
 			BiddersName: *biddersName,
 			Amount:      bidval,
 		}
 		ack, err := server.Bid(ctx, amount)
 		if err != nil {
+			log.Printf("Client %s: no response from server, tries to reconnect", *biddersName)
+			// conn.Close()
+			joinServer(_ports[:])
+
 			log.Fatal(err)
 		}
 		if ack.Status == "fail" {

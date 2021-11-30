@@ -1,0 +1,6 @@
+2021/11/30 10:33:45 Server 1: Attempts to create listener on port 5400
+2021/11/30 10:33:48 client c1: Attempts to dial on port 5400
+2021/11/30 10:33:48 Client askes for highest bid of 0
+2021/11/30 10:34:23 EOF
+2021/11/30 10:34:26 client c1: Attempts to dial on port 5400
+2021/11/30 10:34:26 Client askes for highest bid of 0

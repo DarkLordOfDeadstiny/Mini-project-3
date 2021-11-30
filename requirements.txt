@@ -1,0 +1,24 @@
+use replication
+handle actions
+operations for bidding and querying the state of the action
+resilient to 1 crash failure
+
+some number of nodes (on different hosts if hosible)
+
+func bid(amount int)
+returns ack{fail, success or exception}
+
+func result()
+returns outcome{highest bid or the result}
+
+first call to "bid" registers bidder
+
+a bid must be higher than the previous one(s)
+
+after a specified timeframe,
+ the highest bidder ends up as the winner of the auction
+
+bidders can query the system in order to know the state of the auction
+ (who is winning?)
+
+
